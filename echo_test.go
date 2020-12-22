@@ -405,6 +405,22 @@ func TestEchoNotFound(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, rec.Code)
 }
 
+func TestEchoRouteNotFound(t *testing.T) {
+	e := New()
+	e.GET("/found", func(c Context) error {
+		return c.NoContent(http.StatusOK)
+	})
+	e.Pre(MiddlewareFunc(func(next HandlerFunc) HandlerFunc {
+		return HandlerFunc(func(c Context) error {
+			return c.RouteNotFound()
+		})
+	}))
+	req := httptest.NewRequest(http.MethodGet, "/found", nil)
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+	assert.Equal(t, http.StatusNotFound, rec.Code)
+}
+
 func TestEchoMethodNotAllowed(t *testing.T) {
 	e := New()
 	e.GET("/", func(c Context) error {

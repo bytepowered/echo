@@ -175,6 +175,9 @@ type (
 		// Error invokes the registered HTTP error handler. Generally used by middleware.
 		Error(err error)
 
+		// RouteNotFound returns an error to re-invoke NotFoundHandler after routed. Generally used by middleware.
+		RouteNotFound() error
+
 		// Handler returns the matched handler by router.
 		Handler() HandlerFunc
 
@@ -600,6 +603,10 @@ func (c *context) Redirect(code int, url string) error {
 
 func (c *context) Error(err error) {
 	c.echo.HTTPErrorHandler(err, c)
+}
+
+func (c *context) RouteNotFound() error {
+	return ErrRouteNotFound
 }
 
 func (c *context) Echo() *Echo {

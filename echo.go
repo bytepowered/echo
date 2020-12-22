@@ -266,6 +266,7 @@ var (
 var (
 	ErrUnsupportedMediaType        = NewHTTPError(http.StatusUnsupportedMediaType)
 	ErrNotFound                    = NewHTTPError(http.StatusNotFound)
+	ErrRouteNotFound               = NewHTTPError(http.StatusNotFound)
 	ErrUnauthorized                = NewHTTPError(http.StatusUnauthorized)
 	ErrForbidden                   = NewHTTPError(http.StatusForbidden)
 	ErrMethodNotAllowed            = NewHTTPError(http.StatusMethodNotAllowed)
@@ -632,6 +633,10 @@ func (e *Echo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Execute chain
 	if err := h(c); err != nil {
+		// Re-invoke NotFoundHandler if returns an ErrRouteNotFound error
+		if err == ErrRouteNotFound {
+			err = NotFoundHandler(c)
+		}
 		e.HTTPErrorHandler(err, c)
 	}
 
