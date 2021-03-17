@@ -633,11 +633,13 @@ func (e *Echo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Execute chain
 	if err := h(c); err != nil {
-		// Re-invoke NotFoundHandler if returns an ErrRouteNotFound error
-		if err == ErrRouteNotFound {
+		// Re-invoke NotFoundHandler if returns an ErrRouteNotFound, ErrorNotFound error
+		if err == ErrRouteNotFound || err == ErrNotFound {
 			err = NotFoundHandler(c)
 		}
-		e.HTTPErrorHandler(err, c)
+		if nil != err {
+			e.HTTPErrorHandler(err, c)
+		}
 	}
 
 	// Release context
