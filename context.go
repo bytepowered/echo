@@ -565,7 +565,7 @@ func (c *context) Stream(code int, contentType string, r io.Reader) (err error) 
 func (c *context) File(file string) (err error) {
 	f, err := os.Open(file)
 	if err != nil {
-		return NotFoundHandler(c)
+		return c.echo.NotFoundHandler(c)
 	}
 	defer f.Close()
 
@@ -574,7 +574,7 @@ func (c *context) File(file string) (err error) {
 		file = filepath.Join(file, indexPage)
 		f, err = os.Open(file)
 		if err != nil {
-			return NotFoundHandler(c)
+			return c.echo.NotFoundHandler(c)
 		}
 		defer f.Close()
 		if fi, err = f.Stat(); err != nil {
@@ -644,7 +644,7 @@ func (c *context) Reset(r *http.Request, w http.ResponseWriter) {
 	c.request = r
 	c.response.reset(w)
 	c.query = nil
-	c.handler = NotFoundHandler
+	c.handler = c.echo.NotFoundHandler
 	c.store = nil
 	c.path = ""
 	c.pnames = nil

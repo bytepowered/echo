@@ -77,7 +77,6 @@ type (
 		maxParam         *int
 		router           *Router
 		routers          map[string]*Router
-		notFoundHandler  HandlerFunc
 		pool             sync.Pool
 		Server           *http.Server
 		TLSServer        *http.Server
@@ -89,6 +88,7 @@ type (
 		HideBanner       bool
 		HidePort         bool
 		HTTPErrorHandler HTTPErrorHandler
+		NotFoundHandler  HandlerFunc
 		Binder           Binder
 		JSONSerializer   JSONSerializer
 		Validator        Validator
@@ -321,6 +321,7 @@ func New() (e *Echo) {
 	e.Server.Handler = e
 	e.TLSServer.Handler = e
 	e.HTTPErrorHandler = e.DefaultHTTPErrorHandler
+	e.NotFoundHandler = NotFoundHandler
 	e.Binder = &DefaultBinder{}
 	e.JSONSerializer = &DefaultJSONSerializer{}
 	e.Logger.SetLevel(log.ERROR)
@@ -341,7 +342,7 @@ func (e *Echo) NewContext(r *http.Request, w http.ResponseWriter) Context {
 		store:    make(Map),
 		echo:     e,
 		pvalues:  make([]string, *e.maxParam),
-		handler:  NotFoundHandler,
+		handler:  e.NotFoundHandler,
 	}
 }
 
@@ -500,7 +501,7 @@ func (common) static(prefix, root string, get func(string, HandlerFunc, ...Middl
 		fi, err := os.Stat(name)
 		if err != nil {
 			// The access path does not exist
-			return NotFoundHandler(c)
+			return c.Echo().NotFoundHandler(c)
 		}
 
 		// If the request is for a directory and does not end with "/"
@@ -634,7 +635,7 @@ func (e *Echo) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Acquire context
 	c := e.pool.Get().(*context)
 	c.Reset(r, w)
-	h := NotFoundHandler
+	h := c.Handler()
 
 	if e.premiddleware == nil {
 		e.findRouter(r.Host).Find(r.Method, GetPath(r), c)

@@ -362,7 +362,7 @@ func (n *node) checkMethodNotAllowed() HandlerFunc {
 			return MethodNotAllowedHandler
 		}
 	}
-	return NotFoundHandler
+	return nil
 }
 
 // Find lookup a handler registered for method and path. It also parses URL for path
@@ -557,7 +557,9 @@ func (r *Router) Find(method, path string, c Context) {
 		// use previous match as basis. although we have no matching handler we have path match.
 		// so we can send http.StatusMethodNotAllowed (405) instead of http.StatusNotFound (404)
 		currentNode = previousBestMatchNode
-		ctx.handler = currentNode.checkMethodNotAllowed()
+		if ctx.handler = currentNode.checkMethodNotAllowed(); ctx.handler == nil {
+			ctx.handler = r.echo.NotFoundHandler
+		}
 	}
 	ctx.path = currentNode.ppath
 	ctx.pnames = currentNode.pnames
